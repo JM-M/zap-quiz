@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { KeyboardIcon, ShapesIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -8,7 +9,7 @@ export const Hero = () => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center py-20">
+    <header className="app-container flex flex-col items-center justify-center space-y-10 py-20">
       <div className="space-y-5 text-center">
         <h1 className="text-4xl font-bold">Spark the Fun with Zap Quiz</h1>
         <p className="text-lg">
@@ -16,12 +17,22 @@ export const Hero = () => {
           everyone loves.
         </p>
       </div>
-      <div className="flex items-center gap-2">
-        <Button>New game</Button>
-        <div className="flex items-center gap-2">
-          <Input value={code} onChange={(e) => setCode(e.target.value)} />
+      <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
+        <Button className="flex h-12 w-full rounded-full !px-5 sm:w-fit">
+          <ShapesIcon />
+          New game
+        </Button>
+        <div className="relative flex h-fit w-fit items-center gap-2">
+          <KeyboardIcon className="text-muted-foreground absolute top-1/2 left-3 size-5 -translate-y-1/2" />
+          <Input
+            placeholder="Enter code or link"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="h-12 rounded-full pr-16 pl-10"
+          />
           <Button
             variant="ghost"
+            className="absolute top-1/2 right-0 h-12 w-16 -translate-y-1/2 rounded-full font-medium"
             onClick={() => router.push(`/${code}/lobby`)}
             disabled={!code}
           >
@@ -29,6 +40,6 @@ export const Hero = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </header>
   );
 };

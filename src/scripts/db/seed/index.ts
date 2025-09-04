@@ -1,7 +1,7 @@
 import { config } from "dotenv";
-import { eq } from "drizzle-orm";
 import { db } from "../../../db";
 import { games, players, questionOptions, questions } from "../../../db/schema";
+import { user } from "../../../db/schema/auth";
 
 // Load environment variables
 config({ path: ".env.local" });
@@ -10,6 +10,19 @@ async function seedDatabase() {
   console.log("🌱 Starting database seed operation...");
 
   try {
+    // Create a sample user (host)
+    const [hostUser] = await db
+      .insert(user)
+      .values({
+        id: "user_123456789",
+        name: "Quiz Host",
+        email: "host@example.com",
+        emailVerified: true,
+      })
+      .returning();
+
+    console.log("✅ Created host user:", hostUser.email);
+
     // Create a sample game
     const [game] = await db
       .insert(games)
@@ -17,7 +30,7 @@ async function seedDatabase() {
         code: "ABC123",
         title: "Sample Quiz Game",
         status: "waiting",
-        hostId: "00000000-0000-0000-0000-000000000000", // Placeholder, will be updated
+        hostId: hostUser.id,
         settings: {
           timeLimit: 30,
           allowLateJoins: true,
@@ -105,7 +118,7 @@ async function seedDatabase() {
 
     // Create sample players
     const samplePlayers = [
-      { name: "Alice", isHost: true },
+      { name: "Alice", isHost: false },
       { name: "Bob", isHost: false },
       { name: "Charlie", isHost: false },
     ];
@@ -122,15 +135,10 @@ async function seedDatabase() {
       createdPlayers.push(player);
     }
 
-    // Update the game with the actual host ID
-    await db
-      .update(games)
-      .set({ hostId: createdPlayers[0].id })
-      .where(eq(games.id, game.id));
-
     console.log("✅ Created players:", createdPlayers.length);
 
     console.log(`🎮 Sample game created with code: ${game.code}`);
+    console.log(`👤 Host: ${hostUser.name} (${hostUser.email})`);
     console.log(`📝 Questions: ${createdQuestions.length}`);
     console.log(`👥 Players: ${createdPlayers.length}`);
   } catch (error) {

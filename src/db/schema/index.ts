@@ -9,6 +9,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 
 // Games table - Main quiz sessions
 export const games = pgTable(
@@ -22,7 +23,9 @@ export const games = pgTable(
     })
       .notNull()
       .default("waiting"),
-    hostId: uuid("host_id").notNull(),
+    hostId: text("host_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     startedAt: timestamp("started_at"),
@@ -33,9 +36,7 @@ export const games = pgTable(
       showCorrectAnswers?: boolean;
     }>(),
   },
-  (table) => ({
-    codeIdx: index("idx_games_code").on(table.code),
-  }),
+  (table) => [index("idx_games_code").on(table.code)],
 );
 
 // Questions table - Quiz questions
@@ -53,13 +54,10 @@ export const questions = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (table) => ({
-    gameIdIdx: index("idx_questions_game_id").on(table.gameId),
-    gameOrderIdx: index("idx_questions_game_order").on(
-      table.gameId,
-      table.order,
-    ),
-  }),
+  (table) => [
+    index("idx_questions_game_id").on(table.gameId),
+    index("idx_questions_game_order").on(table.gameId, table.order),
+  ],
 );
 
 // Question Options table - Answer choices
@@ -75,15 +73,13 @@ export const questionOptions = pgTable(
     order: integer("order").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
-  (table) => ({
-    questionIdIdx: index("idx_question_options_question_id").on(
-      table.questionId,
-    ),
-    questionOrderIdx: index("idx_question_options_question_order").on(
+  (table) => [
+    index("idx_question_options_question_id").on(table.questionId),
+    index("idx_question_options_question_order").on(
       table.questionId,
       table.order,
     ),
-  }),
+  ],
 );
 
 // Players table - Game participants
@@ -100,13 +96,10 @@ export const players = pgTable(
     leftAt: timestamp("left_at"),
     isActive: boolean("is_active").notNull().default(true),
   },
-  (table) => ({
-    gameIdIdx: index("idx_players_game_id").on(table.gameId),
-    gameActiveIdx: index("idx_players_game_active").on(
-      table.gameId,
-      table.isActive,
-    ),
-  }),
+  (table) => [
+    index("idx_players_game_id").on(table.gameId),
+    index("idx_players_game_active").on(table.gameId, table.isActive),
+  ],
 );
 
 // Player Answers table - Individual responses
@@ -127,14 +120,14 @@ export const playerAnswers = pgTable(
     timeToAnswer: integer("time_to_answer").notNull(), // milliseconds taken to answer
     isCorrect: boolean("is_correct").notNull(), // denormalized for performance
   },
-  (table) => ({
-    playerQuestionIdx: index("idx_player_answers_player_question").on(
+  (table) => [
+    index("idx_player_answers_player_question").on(
       table.playerId,
       table.questionId,
     ),
-    questionIdx: index("idx_player_answers_question").on(table.questionId),
-    playerIdx: index("idx_player_answers_player").on(table.playerId),
-  }),
+    index("idx_player_answers_question").on(table.questionId),
+    index("idx_player_answers_player").on(table.playerId),
+  ],
 );
 
 // Player Scores table - Aggregated scores
@@ -155,21 +148,18 @@ export const playerScores = pgTable(
     rank: integer("rank").notNull().default(1),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (table) => ({
-    gameRankIdx: index("idx_player_scores_game_rank").on(
-      table.gameId,
-      table.rank,
-    ),
-    playerIdx: index("idx_player_scores_player").on(table.playerId),
-    gameIdx: index("idx_player_scores_game").on(table.gameId),
-  }),
+  (table) => [
+    index("idx_player_scores_game_rank").on(table.gameId, table.rank),
+    index("idx_player_scores_player").on(table.playerId),
+    index("idx_player_scores_game").on(table.gameId),
+  ],
 );
 
 // Relations
 export const gamesRelations = relations(games, ({ one, many }) => ({
-  host: one(players, {
+  host: one(user, {
     fields: [games.hostId],
-    references: [players.id],
+    references: [user.id],
   }),
   questions: many(questions),
   players: many(players),
@@ -230,6 +220,3 @@ export const playerScoresRelations = relations(playerScores, ({ one }) => ({
     references: [games.id],
   }),
 }));
-
-// Export all tables
-export * from "./index";

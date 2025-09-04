@@ -1,11 +1,11 @@
 import { Nav } from "@/components/nav";
 import { ThemeProvider } from "@/components/providers/theme";
 import type { Metadata } from "next";
-import { Geist_Mono, Nunito_Sans } from "next/font/google";
+import { Geist_Mono, Work_Sans } from "next/font/google";
 import "./globals.css";
 
-const nunitoSans = Nunito_Sans({
-  variable: "--font-nunito-sans",
+const workSans = Work_Sans({
+  variable: "--font-work-sans",
   subsets: ["latin"],
 });
 
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${nunitoSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans antialiased`}
+        className={`${workSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"

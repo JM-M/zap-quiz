@@ -25,7 +25,7 @@ export const Hero = () => {
         >
           <Link href="/new">
             <ShapesIcon />
-            New game
+            Create a quiz
           </Link>
         </Button>
         <div className="relative flex h-fit w-fit items-center gap-2">

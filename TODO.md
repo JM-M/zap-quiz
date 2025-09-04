@@ -1,0 +1,1 @@
+- [ ] Standardize data fetching and passing from server to client (consider tRPC).

@@ -1,35 +1,37 @@
+"use client";
+
+import { Spinner } from "@/components/spinner";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getGame } from "../../server/actions";
+import { authClient } from "@/lib/auth/auth-client";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { ShapesIcon } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
-interface LobbyViewProps {
-  code: string;
-}
+export const LobbyView = () => {
+  const { code } = useParams<{ code: string }>();
+  const session = authClient.useSession();
+  const user = session.data?.user;
 
-export const LobbyView = async ({ code }: LobbyViewProps) => {
-  const game = await getGame(code);
-
-  if (!game) {
-    return <div>Game not found</div>;
-  }
+  const trpc = useTRPC();
+  const { data: game } = useSuspenseQuery(
+    trpc.game.findOneByCode.queryOptions({ code }),
+  );
+  const { data: players } = useSuspenseQuery(
+    trpc.game.getGamePlayers.queryOptions({ gameId: game.id }),
+  );
+  const isHost = game && user ? game?.hostId === user?.id : false;
 
   const { title } = game;
 
-  const players = [
-    {
-      id: "1",
-      name: "Player 1",
-      isHost: true,
-    },
-    ...Array.from({ length: 10 }, (_, i) => ({
-      id: `player-${i + 2}`,
-      name: `Player ${i + 2}`,
-      isHost: false,
-    })),
-  ];
-
   return (
-    <div className="app-container">
-      <h2>{title}</h2>
+    <div className="app-container flex flex-1 flex-col gap-10 py-10">
+      <h2 className="text-center text-2xl font-semibold">{title}</h2>
+      <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
+        <Spinner className="size-5" /> <p>Starting soon...</p>
+      </div>
       <div className="grid grid-cols-2 gap-2">
         {players.map((player) => (
           <Card key={player.id} className="rounded-lg p-3">
@@ -37,6 +39,16 @@ export const LobbyView = async ({ code }: LobbyViewProps) => {
           </Card>
         ))}
       </div>
+      {isHost && (
+        <div className="mt-auto flex items-center justify-center">
+          <Button className="h-12 rounded-full !px-5" asChild>
+            <Link href={`/${code}/play`}>
+              <ShapesIcon />
+              Start game
+            </Link>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

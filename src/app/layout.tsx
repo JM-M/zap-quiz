@@ -1,5 +1,6 @@
 import { Nav } from "@/components/nav";
 import { ThemeProvider } from "@/components/providers/theme";
+import { TRPCReactProvider } from "@/trpc/client";
 import type { Metadata } from "next";
 import { Geist_Mono, Work_Sans } from "next/font/google";
 import "./globals.css";
@@ -25,20 +26,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${workSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+    <TRPCReactProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${workSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans antialiased`}
         >
-          <Nav />
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Nav />
+            {children}
+          </ThemeProvider>
+        </body>
+      </html>
+    </TRPCReactProvider>
   );
 }

@@ -1,6 +1,19 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { getGame } from "../../server/actions";
 
-export const LobbyView = () => {
+interface LobbyViewProps {
+  code: string;
+}
+
+export const LobbyView = async ({ code }: LobbyViewProps) => {
+  const game = await getGame(code);
+
+  if (!game) {
+    return <div>Game not found</div>;
+  }
+
+  const { title } = game;
+
   const players = [
     {
       id: "1",
@@ -16,6 +29,7 @@ export const LobbyView = () => {
 
   return (
     <div className="app-container">
+      <h2>{title}</h2>
       <div className="grid grid-cols-2 gap-2">
         {players.map((player) => (
           <Card key={player.id} className="rounded-lg p-3">

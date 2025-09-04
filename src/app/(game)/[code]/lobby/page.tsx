@@ -1,5 +1,5 @@
 import { requireAuth } from "@/lib/auth/utils";
-import { LobbyView } from "@/modules/lobby/ui/views/lobby-view";
+import { LobbyView } from "@/modules/game/ui/views/lobby-view";
 
 const LobbyPage = async ({ params }: { params: Promise<{ code: string }> }) => {
   const { code } = await params;
@@ -7,6 +7,6 @@ const LobbyPage = async ({ params }: { params: Promise<{ code: string }> }) => {
     returnUrl: `/${code}/lobby`,
   });
 
-  return <LobbyView />;
+  return <LobbyView code={code} />;
 };
 export default LobbyPage;

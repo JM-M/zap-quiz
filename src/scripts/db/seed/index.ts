@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { db } from "../../../db";
 import { games, players, questionOptions, questions } from "../../../db/schema";
-import { user } from "../../../db/schema/auth";
+import { authClient } from "../../../lib/auth/auth-client";
 
 // Load environment variables
 config({ path: ".env.local" });
@@ -10,18 +10,27 @@ async function seedDatabase() {
   console.log("🌱 Starting database seed operation...");
 
   try {
-    // Create a sample user (host)
-    const [hostUser] = await db
-      .insert(user)
-      .values({
-        id: "user_123456789",
-        name: "Quiz Host",
-        email: "host@example.com",
-        emailVerified: true,
-      })
-      .returning();
+    // Create a sample user (host) using auth client
+    const hostUser = await authClient.signUp.email({
+      name: "Mike Jola-Moses",
+      email: "mikejolamoses@gmail.com",
+      password: "password123",
+    });
 
-    console.log("✅ Created host user:", hostUser.email);
+    console.log("✅ Auth response:", JSON.stringify(hostUser, null, 2));
+
+    if (!hostUser.data?.user?.id) {
+      throw new Error(
+        "Failed to create user or get user ID from auth response",
+      );
+    }
+
+    console.log(
+      "✅ Created host user:",
+      hostUser.data.user.email,
+      "with ID:",
+      hostUser.data.user.id,
+    );
 
     // Create a sample game
     const [game] = await db
@@ -30,7 +39,7 @@ async function seedDatabase() {
         code: "ABC123",
         title: "Sample Quiz Game",
         status: "waiting",
-        hostId: hostUser.id,
+        hostId: hostUser.data.user.id,
         settings: {
           timeLimit: 30,
           allowLateJoins: true,
@@ -138,7 +147,9 @@ async function seedDatabase() {
     console.log("✅ Created players:", createdPlayers.length);
 
     console.log(`🎮 Sample game created with code: ${game.code}`);
-    console.log(`👤 Host: ${hostUser.name} (${hostUser.email})`);
+    console.log(
+      `👤 Host: ${hostUser.data.user.name} (${hostUser.data.user.email})`,
+    );
     console.log(`📝 Questions: ${createdQuestions.length}`);
     console.log(`👥 Players: ${createdPlayers.length}`);
   } catch (error) {

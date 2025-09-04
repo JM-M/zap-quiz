@@ -28,7 +28,10 @@ export const Hero = () => {
             Create a quiz
           </Link>
         </Button>
-        <div className="relative flex h-fit w-fit items-center gap-2">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="relative flex h-fit w-fit items-center gap-2"
+        >
           <KeyboardIcon className="text-muted-foreground absolute top-1/2 left-3 size-5 -translate-y-1/2" />
           <Input
             placeholder="Enter code or link"
@@ -37,6 +40,7 @@ export const Hero = () => {
             className="h-12 rounded-full pr-16 pl-10"
           />
           <Button
+            type="submit"
             variant="ghost"
             className="absolute top-1/2 right-0 h-12 w-16 -translate-y-1/2 rounded-full font-medium"
             onClick={() => router.push(`/${code}/lobby`)}
@@ -44,7 +48,7 @@ export const Hero = () => {
           >
             Join
           </Button>
-        </div>
+        </form>
       </div>
     </header>
   );

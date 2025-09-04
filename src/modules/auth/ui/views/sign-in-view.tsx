@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Spinner } from "@/components/spinner";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,12 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OctagonAlertIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { SocialAuth } from "../components/social-auth";
 
@@ -36,6 +37,9 @@ export const SignInView = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -57,7 +61,7 @@ export const SignInView = () => {
       {
         onSuccess: () => {
           setPending(false);
-          router.push("/");
+          router.push(returnUrl || "/");
         },
         onError: ({ error }) => {
           setPending(false);
@@ -127,11 +131,8 @@ export const SignInView = () => {
                   </Alert>
                 )}
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  //  isLoading={pending}
-                >
+                <Button type="submit" className="w-full" disabled={pending}>
+                  {pending && <Spinner />}
                   Sign in
                 </Button>
 

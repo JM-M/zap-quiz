@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { KeyboardIcon, ShapesIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,9 +19,14 @@ export const Hero = () => {
         </p>
       </div>
       <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
-        <Button className="flex h-12 w-full rounded-full !px-5 sm:w-fit">
-          <ShapesIcon />
-          New game
+        <Button
+          className="flex h-12 w-full rounded-full !px-5 sm:w-fit"
+          asChild
+        >
+          <Link href="/new">
+            <ShapesIcon />
+            New game
+          </Link>
         </Button>
         <div className="relative flex h-fit w-fit items-center gap-2">
           <KeyboardIcon className="text-muted-foreground absolute top-1/2 left-3 size-5 -translate-y-1/2" />

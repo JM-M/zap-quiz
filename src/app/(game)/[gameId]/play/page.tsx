@@ -1,4 +1,4 @@
-import { PlayView } from "@/modules/play/ui/views/play-view";
+import { PlayView } from "@/modules/game/ui/views/play-view";
 
 const PlayPage = () => {
   return <PlayView />;

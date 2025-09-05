@@ -1,5 +1,7 @@
 "use server";
 
+// TODO: Remove this file
+
 import { db } from "@/db";
 import { games, players } from "@/db/schema";
 import { eq } from "drizzle-orm";

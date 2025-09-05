@@ -47,7 +47,7 @@ export const questions = pgTable(
     gameId: uuid("game_id")
       .notNull()
       .references(() => games.id, { onDelete: "cascade" }),
-    question: text("question").notNull(),
+    prompt: text("prompt").notNull(),
     order: integer("order").notNull(),
     timeLimit: integer("time_limit"), // seconds, nullable for no time limit
     points: integer("points").notNull().default(1),
@@ -91,6 +91,9 @@ export const players = pgTable(
       .notNull()
       .references(() => games.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     isHost: boolean("is_host").notNull().default(false),
     joinedAt: timestamp("joined_at").notNull().defaultNow(),
     leftAt: timestamp("left_at"),
@@ -99,6 +102,7 @@ export const players = pgTable(
   (table) => [
     index("idx_players_game_id").on(table.gameId),
     index("idx_players_game_active").on(table.gameId, table.isActive),
+    index("idx_players_user_id").on(table.userId),
   ],
 );
 

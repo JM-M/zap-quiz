@@ -1,16 +1,81 @@
 import { Spinner } from "@/components/spinner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 import { CircleIcon, SquareIcon, StarIcon, TriangleIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  GameGetCurrentPlayer,
+  GameGetGameQuestions,
+  GameGetOneByCode,
+} from "../../types";
 
 const optionIcons = [SquareIcon, CircleIcon, TriangleIcon, StarIcon];
 
-export const Quiz = () => {
+interface QuizProps {
+  game: GameGetOneByCode;
+  questions: GameGetGameQuestions;
+  currentQuestionIndex: number;
+  currentPlayer: GameGetCurrentPlayer;
+  setScreen: (screen: "countdown" | "quiz" | "leaderboard") => void;
+}
+
+export const Quiz = ({
+  game,
+  questions,
+  currentQuestionIndex,
+  currentPlayer,
+  setScreen,
+}: QuizProps) => {
+  const playerId = currentPlayer.id;
+
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const startTime = useRef<number>(Date.now());
+
+  const trpc = useTRPC();
+  const saveAnswerMutation = useMutation(
+    trpc.game.savePlayerAnswer.mutationOptions(),
+  );
+
+  const handleOptionSelect = (optionIndex: number) => {
+    if (selectedOption !== null || !playerId) return;
+
+    const timeToAnswer = Date.now() - startTime.current;
+
+    setSelectedOption(optionIndex);
+    saveAnswerMutation.mutate({
+      playerId,
+      questionId: currentQuestion.id,
+      optionId: options[optionIndex].id,
+      timeToAnswer,
+    });
+  };
+
+  useEffect(() => {
+    if (selectedOption !== null) {
+      setTimeout(() => {
+        setScreen("leaderboard");
+      }, 2000);
+    }
+  }, [selectedOption]);
+
+  // Reset timer when question changes
+  useEffect(() => {
+    startTime.current = Date.now();
+  }, [currentQuestionIndex]);
+
+  const { title } = game;
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const { prompt, options } = currentQuestion;
 
   return (
     <>
+      <h2 className="text-center font-semibold">{title}</h2>
+      <div className="py-5 text-center text-2xl font-bold">
+        {currentQuestionIndex + 1}.
+      </div>
       {selectedOption !== null && (
         <div className="fixed top-0 left-0 flex h-screen w-screen items-center justify-center bg-black/70 text-white backdrop-blur-xs">
           <div className="flex items-center gap-2">
@@ -20,14 +85,11 @@ export const Quiz = () => {
         </div>
       )}
       <div className="flex flex-1 flex-col justify-end gap-5 pb-10">
-        <div className="flex flex-1 items-center justify-center">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Aspernatur
-          officiis non deserunt expedita nobis, adipisci sequi in et ipsa esse
-          autem minima voluptatibus porro asperiores assumenda perspiciatis,
-          aliquid earum officia?
-        </div>
+        <p className="flex flex-1 items-center justify-center text-center text-2xl font-semibold">
+          {prompt}
+        </p>
         <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 4 }).map((_, index) => {
+          {options.map((option, index) => {
             const Icon = optionIcons[index];
             return (
               <Card
@@ -36,12 +98,12 @@ export const Quiz = () => {
                   "flex w-full flex-col justify-center gap-3 rounded-lg p-4",
                   selectedOption === index && "bg-primary/10",
                 )}
-                onClick={() => setSelectedOption(index)}
+                onClick={() => handleOptionSelect(index)}
               >
                 <CardHeader className="p-0">
                   <Icon className="size-5 fill-current" />
                 </CardHeader>
-                <CardContent className="p-0">Option {index + 1}</CardContent>
+                <CardContent className="p-0">{option.text}</CardContent>
               </Card>
             );
           })}

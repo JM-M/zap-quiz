@@ -53,19 +53,19 @@ async function seedDatabase() {
     // Create sample questions
     const sampleQuestions = [
       {
-        question: "What is the capital of France?",
+        prompt: "What is the capital of France?",
         order: 1,
         timeLimit: 30,
         points: 10,
       },
       {
-        question: "Which planet is known as the Red Planet?",
+        prompt: "Which planet is known as the Red Planet?",
         order: 2,
         timeLimit: 25,
         points: 10,
       },
       {
-        question: "What is 2 + 2?",
+        prompt: "What is 2 + 2?",
         order: 3,
         timeLimit: 15,
         points: 5,
@@ -125,11 +125,42 @@ async function seedDatabase() {
 
     console.log("✅ Created question options");
 
-    // Create sample players
+    // Create additional sample users for players
+    const sampleUsers = [
+      {
+        name: "Alice Johnson",
+        email: "alice@example.com",
+        password: "password123",
+      },
+      { name: "Bob Smith", email: "bob@example.com", password: "password123" },
+      {
+        name: "Charlie Brown",
+        email: "charlie@example.com",
+        password: "password123",
+      },
+    ];
+
+    const createdUsers = [];
+    for (const userData of sampleUsers) {
+      const userResponse = await authClient.signUp.email({
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+      });
+
+      if (!userResponse.data?.user?.id) {
+        throw new Error(`Failed to create user ${userData.name}`);
+      }
+
+      createdUsers.push(userResponse.data.user);
+      console.log(`✅ Created user: ${userData.name} (${userData.email})`);
+    }
+
+    // Create sample players with userId references
     const samplePlayers = [
-      { name: "Alice", isHost: false },
-      { name: "Bob", isHost: false },
-      { name: "Charlie", isHost: false },
+      { name: "Alice", isHost: false, userId: createdUsers[0].id },
+      { name: "Bob", isHost: false, userId: createdUsers[1].id },
+      { name: "Charlie", isHost: false, userId: createdUsers[2].id },
     ];
 
     const createdPlayers = [];
@@ -150,8 +181,11 @@ async function seedDatabase() {
     console.log(
       `👤 Host: ${hostUser.data.user.name} (${hostUser.data.user.email})`,
     );
-    console.log(`📝 Questions: ${createdQuestions.length}`);
     console.log(`👥 Players: ${createdPlayers.length}`);
+    console.log(
+      `👤 Users created: ${createdUsers.length + 1} (including host)`,
+    );
+    console.log(`📝 Questions: ${createdQuestions.length}`);
   } catch (error) {
     console.error("❌ Error during database seeding:", error);
     throw error;

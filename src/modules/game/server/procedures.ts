@@ -1,3 +1,5 @@
+// TODO: Remove procedures that are handled by websocket
+
 import { db } from "@/db";
 import {
   games as gamesTable,

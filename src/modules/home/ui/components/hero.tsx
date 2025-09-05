@@ -52,7 +52,7 @@ export const Hero = () => {
             onClick={() => {
               if (!isLoggedIn) {
                 router.push(
-                  `/sign-in?returnUrl=${encodeURIComponent(`/${code}/join`)}`,
+                  `/sign-in?returnUrl=${encodeURIComponent(`/${code}/lobby`)}`,
                 );
                 return;
               }

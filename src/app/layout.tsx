@@ -1,6 +1,7 @@
 import { Nav } from "@/components/nav";
 import { ThemeProvider } from "@/components/providers/theme";
 import { Toaster } from "@/components/ui/sonner";
+import { SocketProvider } from "@/contexts/socket";
 import { TRPCReactProvider } from "@/trpc/client";
 import type { Metadata } from "next";
 import { Geist_Mono, Work_Sans } from "next/font/google";
@@ -38,9 +39,11 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Toaster />
-            <Nav />
-            {children}
+            <SocketProvider>
+              <Toaster />
+              <Nav />
+              {children}
+            </SocketProvider>
           </ThemeProvider>
         </body>
       </html>

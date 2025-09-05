@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useSocket } from "../../../hooks/use-socket";
 
@@ -20,12 +21,17 @@ interface LobbyState {
   error: string | null;
 }
 
-export const useLobby = (
-  gameCode: string,
-  playerName: string,
-  userId?: string,
-) => {
+export const useLobby = ({
+  gameCode,
+  playerName,
+  userId,
+}: {
+  gameCode: string;
+  playerName: string;
+  userId?: string;
+}) => {
   const { socket, isConnected } = useSocket();
+  const router = useRouter();
   const [lobbyState, setLobbyState] = useState<LobbyState>({
     players: [],
     gameId: null,
@@ -36,13 +42,13 @@ export const useLobby = (
 
   // Join lobby when connected
   useEffect(() => {
-    if (isConnected && socket && gameCode && playerName) {
+    if (isConnected && socket && gameCode && playerName && userId) {
       setLobbyState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       socket.emit("JOIN_LOBBY", {
         gameCode,
         playerName,
-        userId: userId || `user-${Date.now()}`,
+        userId,
       });
     }
   }, [isConnected, socket, gameCode, playerName, userId]);
@@ -106,12 +112,18 @@ export const useLobby = (
       }));
     };
 
+    const handleGameStarted = (data: { gameId: string; startedAt: string }) => {
+      // Navigate to game play view when game starts
+      router.push(`/${gameCode}/play`);
+    };
+
     // Register event listeners
     socket.on("LOBBY_JOINED", handleLobbyJoined);
     socket.on("PLAYER_JOINED_LOBBY", handlePlayerJoinedLobby);
     socket.on("PLAYER_LEFT_LOBBY", handlePlayerLeftLobby);
     socket.on("LOBBY_ERROR", handleLobbyError);
     socket.on("LOBBY_PLAYERS", handleLobbyPlayers);
+    socket.on("GAME_STARTED", handleGameStarted);
 
     // Cleanup
     return () => {
@@ -120,6 +132,7 @@ export const useLobby = (
       socket.off("PLAYER_LEFT_LOBBY", handlePlayerLeftLobby);
       socket.off("LOBBY_ERROR", handleLobbyError);
       socket.off("LOBBY_PLAYERS", handleLobbyPlayers);
+      socket.off("GAME_STARTED", handleGameStarted);
     };
   }, [socket]);
 
@@ -140,10 +153,21 @@ export const useLobby = (
     }
   }, [socket, lobbyState.gameId]);
 
+  // Start game function
+  const startGame = useCallback(() => {
+    if (socket && lobbyState.gameId && lobbyState.player?.isHost) {
+      socket.emit("START_GAME", {
+        gameId: lobbyState.gameId,
+        hostId: lobbyState.player.userId,
+      });
+    }
+  }, [socket, lobbyState.gameId, lobbyState.player]);
+
   return {
     ...lobbyState,
     isConnected,
     leaveLobby,
     refreshPlayers,
+    startGame,
   };
 };

@@ -4,57 +4,103 @@ import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth/auth-client";
+import { useLobby } from "@/modules/game/hooks/use-lobby";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ShapesIcon } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export const LobbyView = () => {
   const { code } = useParams<{ code: string }>();
   const session = authClient.useSession();
   const user = session.data?.user;
 
-  const trpc = useTRPC();
+  const router = useRouter();
 
+  const trpc = useTRPC();
   const { data: game } = useSuspenseQuery(
     trpc.game.getGameByCode.queryOptions({ code }),
   );
 
-  const { data: players } = useSuspenseQuery({
-    ...trpc.game.getGamePlayers.queryOptions({ gameId: game.id }),
-    refetchInterval: 5000, // Refetch every 5 seconds
-  });
+  // Use the new WebSocket-based lobby hook
+  const { players, player, isLoading, error, isConnected, leaveLobby } =
+    useLobby(code, user?.name || "Anonymous Player", user?.id);
 
   const isHost = game && user ? game?.hostId === user?.id : false;
-
   const { title } = game;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="app-container flex flex-1 flex-col items-center justify-center gap-4 py-10">
+        <Spinner className="size-8" />
+        <p className="text-muted-foreground">Joining lobby...</p>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="app-container flex flex-1 flex-col items-center justify-center gap-4 py-10">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600">Error</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container flex flex-1 flex-col gap-10 py-10">
       <h2 className="text-center text-2xl font-semibold">{title}</h2>
+
+      {/* Lobby Status */}
       <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-        <Spinner className="size-5" /> <p>Starting soon...</p>
+        <Spinner className="size-5" />
+        <p>Waiting for players...</p>
       </div>
+
+      {/* Players List */}
       <div className="grid grid-cols-2 gap-2">
         {players
           .filter((p) => !p.isHost)
-          .map((player) => (
-            <Card key={player.id} className="rounded-lg p-3">
-              <CardContent className="p-0">{player.name}</CardContent>
+          .map((p) => (
+            <Card key={p.id} className="rounded-lg p-3">
+              <CardContent className="p-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span>{p.name}</span>
+                </div>
+              </CardContent>
             </Card>
           ))}
       </div>
-      {isHost && (
-        <div className="mt-auto flex items-center justify-center">
+
+      {/* Host Controls */}
+      <div className="mt-auto flex items-center justify-center gap-4">
+        <Button
+          onClick={() => {
+            leaveLobby();
+            router.push("/");
+          }}
+          variant="outline"
+          className="h-12 rounded-full !px-5"
+        >
+          Leave Lobby
+        </Button>
+        {isHost && (
           <Button className="h-12 rounded-full !px-5" asChild>
             <Link href={`/${code}/play`}>
               <ShapesIcon />
               Start game
             </Link>
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

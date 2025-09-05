@@ -2,7 +2,6 @@ import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/auth-client";
-import { useJoinGame } from "@/modules/game/hooks/use-join-game";
 import { KeyboardIcon, ShapesIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,11 +9,11 @@ import { useState } from "react";
 
 export const Hero = () => {
   const [code, setCode] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
+
   const session = authClient.useSession();
   const isLoggedIn = !!session?.data;
   const router = useRouter();
-
-  const { joinGameMutation } = useJoinGame();
 
   return (
     <header className="app-container flex flex-col items-center justify-center space-y-10 py-20">
@@ -57,11 +56,12 @@ export const Hero = () => {
                 );
                 return;
               }
-              joinGameMutation.mutate({ code });
+              setIsJoining(true);
+              router.push(`/${code}/lobby`);
             }}
-            disabled={!code || joinGameMutation.isPending}
+            disabled={!code || isJoining}
           >
-            {joinGameMutation.isPending ? <Spinner /> : "Join"}
+            {isJoining ? <Spinner /> : "Join"}
           </Button>
         </form>
       </div>

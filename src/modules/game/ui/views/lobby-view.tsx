@@ -37,11 +37,13 @@ export const LobbyView = () => {
         <Spinner className="size-5" /> <p>Starting soon...</p>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {players.map((player) => (
-          <Card key={player.id} className="rounded-lg p-3">
-            <CardContent className="p-0">{player.name}</CardContent>
-          </Card>
-        ))}
+        {players
+          .filter((p) => !p.isHost)
+          .map((player) => (
+            <Card key={player.id} className="rounded-lg p-3">
+              <CardContent className="p-0">{player.name}</CardContent>
+            </Card>
+          ))}
       </div>
       {isHost && (
         <div className="mt-auto flex items-center justify-center">

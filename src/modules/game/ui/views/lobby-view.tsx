@@ -16,12 +16,16 @@ export const LobbyView = () => {
   const user = session.data?.user;
 
   const trpc = useTRPC();
+
   const { data: game } = useSuspenseQuery(
-    trpc.game.findOneByCode.queryOptions({ code }),
+    trpc.game.getGameByCode.queryOptions({ code }),
   );
-  const { data: players } = useSuspenseQuery(
-    trpc.game.getGamePlayers.queryOptions({ gameId: game.id }),
-  );
+
+  const { data: players } = useSuspenseQuery({
+    ...trpc.game.getGamePlayers.queryOptions({ gameId: game.id }),
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+
   const isHost = game && user ? game?.hostId === user?.id : false;
 
   const { title } = game;

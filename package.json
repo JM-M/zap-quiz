@@ -11,7 +11,8 @@
     "db:push": "drizzle-kit push",
     "db:seed": "bun run src/scripts/db/seed/index.ts",
     "db:nuke": "bun run src/scripts/db/nuke.ts",
-    "db:reset": "bun run src/scripts/db/nuke.ts && sleep 1 && drizzle-kit push && sleep 1 && bun run src/scripts/db/seed/index.ts"
+    "db:reset": "bun run src/scripts/db/nuke.ts && sleep 1 && drizzle-kit push && sleep 1 && bun run src/scripts/db/seed/index.ts",
+    "dev:ngrok": "ngrok http --url=valued-resolved-prawn.ngrok-free.app 3000"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -41,6 +42,7 @@
     "react-hook-form": "^7.62.0",
     "react-icons": "^5.5.0",
     "server-only": "^0.0.1",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.5"
   },

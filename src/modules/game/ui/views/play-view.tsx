@@ -18,7 +18,7 @@ export const PlayView = () => {
 
   const trpc = useTRPC();
   const { data: game } = useSuspenseQuery(
-    trpc.game.findOneByCode.queryOptions({ code }),
+    trpc.game.getGameByCode.queryOptions({ code }),
   );
 
   const { data: questions } = useSuspenseQuery(
@@ -40,7 +40,9 @@ export const PlayView = () => {
   );
 
   const { data: currentPlayer } = useSuspenseQuery(
-    trpc.game.getCurrentPlayer.queryOptions(),
+    trpc.game.getCurrentPlayer.queryOptions({
+      gameId: game.id,
+    }),
   );
 
   const nextQuestion = () => {

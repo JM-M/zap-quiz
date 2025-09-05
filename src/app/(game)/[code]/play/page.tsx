@@ -12,11 +12,11 @@ const PlayPage = async ({ params }: { params: Promise<{ code: string }> }) => {
 
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(
-    trpc.game.findOneByCode.queryOptions({ code }),
+    trpc.game.getGameByCode.queryOptions({ code }),
   );
 
   const game = await queryClient.fetchQuery(
-    trpc.game.findOneByCode.queryOptions({ code }),
+    trpc.game.getGameByCode.queryOptions({ code }),
   );
 
   void queryClient.prefetchQuery(
@@ -31,7 +31,9 @@ const PlayPage = async ({ params }: { params: Promise<{ code: string }> }) => {
     trpc.game.getGamePlayersScores.queryOptions({ gameId: game.id }),
   );
 
-  void queryClient.prefetchQuery(trpc.game.getCurrentPlayer.queryOptions());
+  void queryClient.prefetchQuery(
+    trpc.game.getCurrentPlayer.queryOptions({ gameId: game.id }),
+  );
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

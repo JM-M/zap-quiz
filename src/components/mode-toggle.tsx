@@ -33,11 +33,11 @@ export const ModeToggle = () => {
 
   const getIcon = () => {
     if (theme === "light") {
-      return <Sun className="h-[1.2rem] w-[1.2rem]" />;
+      return <Sun strokeWidth={1.2} className="h-[1.2rem] w-[1.2rem]" />;
     } else if (theme === "dark") {
-      return <Moon className="h-[1.2rem] w-[1.2rem]" />;
+      return <Moon strokeWidth={1.2} className="h-[1.2rem] w-[1.2rem]" />;
     } else {
-      return <Monitor className="h-[1.2rem] w-[1.2rem]" />;
+      return <Monitor strokeWidth={1.2} className="h-[1.2rem] w-[1.2rem]" />;
     }
   };
 

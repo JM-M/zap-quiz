@@ -15,6 +15,8 @@ interface GamePlayState {
   error: string | null;
   screen: "countdown" | "quiz" | "leaderboard";
   currentQuestionIndex: number;
+  answeredCount: number;
+  totalPlayers: number;
 }
 
 export const useGamePlay = ({ gameId }: { gameId: string }) => {
@@ -30,6 +32,8 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     error: null,
     screen: "countdown",
     currentQuestionIndex: 0,
+    answeredCount: 0,
+    totalPlayers: 0,
   });
 
   // Set up WebSocket event listeners
@@ -129,6 +133,23 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
         ...prev,
         screen: data.screen,
         currentQuestionIndex: data.questionIndex,
+        // Reset answer count when question changes
+        answeredCount: 0,
+      }));
+    };
+
+    const handleAnswerCountUpdated = (data: {
+      gameId: string;
+      questionId: string;
+      answeredCount: number;
+      totalPlayers: number;
+    }) => {
+      if (data.gameId !== gameId) return;
+
+      setGamePlayState((prev) => ({
+        ...prev,
+        answeredCount: data.answeredCount,
+        totalPlayers: data.totalPlayers,
       }));
     };
 
@@ -140,6 +161,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     socket.on("SCREEN_UPDATED", handleScreenUpdated);
     socket.on("QUESTION_INDEX_UPDATED", handleQuestionIndexUpdated);
     socket.on("GAME_STATE_UPDATED", handleGameStateUpdated);
+    socket.on("ANSWER_COUNT_UPDATED", handleAnswerCountUpdated);
 
     // Cleanup
     return () => {
@@ -150,6 +172,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
       socket.off("SCREEN_UPDATED", handleScreenUpdated);
       socket.off("QUESTION_INDEX_UPDATED", handleQuestionIndexUpdated);
       socket.off("GAME_STATE_UPDATED", handleGameStateUpdated);
+      socket.off("ANSWER_COUNT_UPDATED", handleAnswerCountUpdated);
     };
   }, [socket, gameId]);
 
@@ -219,6 +242,19 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     [socket, gameId],
   );
 
+  const notifyPlayerAnswered = useCallback(
+    (playerId: string, questionId: string) => {
+      if (socket && gameId) {
+        socket.emit("PLAYER_ANSWERED_QUESTION", {
+          gameId,
+          playerId,
+          questionId,
+        });
+      }
+    },
+    [socket, gameId],
+  );
+
   return {
     ...gamePlayState,
     startCountdown,
@@ -226,5 +262,6 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     updateScreen,
     updateQuestionIndex,
     updateGameState,
+    notifyPlayerAnswered,
   };
 };

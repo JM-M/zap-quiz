@@ -33,9 +33,9 @@ export const PlayView = () => {
     isConnected,
     screen,
     currentQuestionIndex,
-    updateScreen,
-    updateQuestionIndex,
-    updateGameState,
+    answeredCount,
+    totalPlayers,
+    notifyPlayerAnswered,
   } = useGamePlay({
     gameId: game.id,
   });
@@ -71,15 +71,6 @@ export const PlayView = () => {
     }
   }, [screen, isConnected, countdown.isActive, startCountdown]);
 
-  // Countdown completion is now handled server-side automatically
-
-  const nextQuestion = () => {
-    if (currentQuestionIndex === questions.length - 1) {
-      return;
-    }
-    updateQuestionIndex(currentQuestionIndex + 1);
-  };
-
   return (
     <div className="app-container flex flex-1 flex-col">
       {screen === "countdown" && (
@@ -95,16 +86,17 @@ export const PlayView = () => {
         <Quiz
           game={game}
           questions={questions}
-          setScreen={updateScreen}
           currentQuestionIndex={currentQuestionIndex}
           currentPlayer={currentPlayer}
+          answeredCount={answeredCount}
+          totalPlayers={totalPlayers}
+          notifyPlayerAnswered={notifyPlayerAnswered}
         />
       )}
       {screen === "leaderboard" && (
         <Leaderboard
           game={game}
           players={players}
-          nextQuestion={nextQuestion}
           playersScores={playersScores}
         />
       )}

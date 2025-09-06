@@ -18,7 +18,9 @@ interface QuizProps {
   questions: GameGetGameQuestions;
   currentQuestionIndex: number;
   currentPlayer: GameGetCurrentPlayer;
-  setScreen: (screen: "countdown" | "quiz" | "leaderboard") => void;
+  answeredCount: number;
+  totalPlayers: number;
+  notifyPlayerAnswered: (playerId: string, questionId: string) => void;
 }
 
 export const Quiz = ({
@@ -26,7 +28,9 @@ export const Quiz = ({
   questions,
   currentQuestionIndex,
   currentPlayer,
-  setScreen,
+  answeredCount,
+  totalPlayers,
+  notifyPlayerAnswered,
 }: QuizProps) => {
   const playerId = currentPlayer.id;
 
@@ -44,21 +48,18 @@ export const Quiz = ({
     const timeToAnswer = Date.now() - startTime.current;
 
     setSelectedOption(optionIndex);
+
+    // Save answer to database
     saveAnswerMutation.mutate({
       playerId,
       questionId: currentQuestion.id,
       optionId: options[optionIndex].id,
       timeToAnswer,
     });
-  };
 
-  useEffect(() => {
-    if (selectedOption !== null) {
-      setTimeout(() => {
-        setScreen("leaderboard");
-      }, 2000);
-    }
-  }, [selectedOption]);
+    // Notify server that this player has answered
+    notifyPlayerAnswered(playerId, currentQuestion.id);
+  };
 
   // Reset timer when question changes
   useEffect(() => {
@@ -78,9 +79,14 @@ export const Quiz = ({
       </div>
       {selectedOption !== null && (
         <div className="fixed top-0 left-0 flex h-screen w-screen items-center justify-center bg-black/70 text-white backdrop-blur-xs">
-          <div className="flex items-center gap-2">
-            <Spinner />
-            <span>Waiting for others...</span>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Spinner />
+              <span>Waiting for others...</span>
+            </div>
+            <div className="text-sm text-gray-300">
+              {answeredCount} of {totalPlayers} players answered
+            </div>
           </div>
         </div>
       )}

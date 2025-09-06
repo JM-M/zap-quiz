@@ -24,11 +24,13 @@ export const LobbyView = () => {
     trpc.game.getGameByCode.queryOptions({ code }),
   );
 
-  const { players, isLoading, error, leaveLobby, startGame } = useLobby({
-    gameCode: code,
-    playerName: user?.name || "Anonymous Player",
-    userId,
-  });
+  const { isConnected, players, isLoading, error, leaveLobby, startGame } =
+    useLobby({
+      gameCode: code,
+      playerName: user?.name || "Anonymous Player",
+      userId,
+    });
+  console.log("isConnected: ", isConnected);
 
   const isHost = game && user ? game?.hostId === user?.id : false;
   const { title } = game;

@@ -10,14 +10,12 @@ interface LeaderboardProps {
   game: GameGetOneByCode;
   players: GameGetGamePlayers;
   playersScores: GameGetGamePlayersScores;
-  nextQuestion: () => void;
 }
 
 export const Leaderboard = ({
   game,
   players,
   playersScores,
-  nextQuestion,
 }: LeaderboardProps) => {
   const initialScoresRef = useRef<GameGetGamePlayersScores>(playersScores);
 

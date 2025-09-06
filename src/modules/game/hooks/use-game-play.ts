@@ -13,7 +13,7 @@ interface GamePlayState {
   countdown: CountdownState;
   isConnected: boolean;
   error: string | null;
-  screen: "countdown" | "quiz" | "leaderboard";
+  screen: "countdown" | "quiz" | "leaderboard" | "scores";
   currentQuestionIndex: number;
   answeredCount: number;
   totalPlayers: number;
@@ -100,7 +100,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
 
     const handleScreenUpdated = (data: {
       gameId: string;
-      screen: "countdown" | "quiz" | "leaderboard";
+      screen: "countdown" | "quiz" | "leaderboard" | "scores";
     }) => {
       if (data.gameId !== gameId) return;
 
@@ -124,7 +124,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
 
     const handleGameStateUpdated = (data: {
       gameId: string;
-      screen: "countdown" | "quiz" | "leaderboard";
+      screen: "countdown" | "quiz" | "leaderboard" | "scores";
       questionIndex: number;
     }) => {
       if (data.gameId !== gameId) return;
@@ -153,6 +153,19 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
       }));
     };
 
+    const handleGameCompleted = (data: {
+      gameId: string;
+      gameCode: string;
+    }) => {
+      if (data.gameId !== gameId) return;
+
+      console.log("Game completed, switching to scores screen");
+      setGamePlayState((prev) => ({
+        ...prev,
+        screen: "scores",
+      }));
+    };
+
     // Register event listeners
     socket.on("COUNTDOWN_START", handleCountdownStart);
     socket.on("COUNTDOWN_TICK", handleCountdownTick);
@@ -162,6 +175,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     socket.on("QUESTION_INDEX_UPDATED", handleQuestionIndexUpdated);
     socket.on("GAME_STATE_UPDATED", handleGameStateUpdated);
     socket.on("ANSWER_COUNT_UPDATED", handleAnswerCountUpdated);
+    socket.on("GAME_COMPLETED", handleGameCompleted);
 
     // Cleanup
     return () => {
@@ -173,6 +187,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
       socket.off("QUESTION_INDEX_UPDATED", handleQuestionIndexUpdated);
       socket.off("GAME_STATE_UPDATED", handleGameStateUpdated);
       socket.off("ANSWER_COUNT_UPDATED", handleAnswerCountUpdated);
+      socket.off("GAME_COMPLETED", handleGameCompleted);
     };
   }, [socket, gameId]);
 
@@ -206,7 +221,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
   }, [socket, gameId]);
 
   const updateScreen = useCallback(
-    (screen: "countdown" | "quiz" | "leaderboard") => {
+    (screen: "countdown" | "quiz" | "leaderboard" | "scores") => {
       if (socket && gameId) {
         socket.emit("UPDATE_SCREEN", {
           gameId,
@@ -230,7 +245,10 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
   );
 
   const updateGameState = useCallback(
-    (screen: "countdown" | "quiz" | "leaderboard", questionIndex: number) => {
+    (
+      screen: "countdown" | "quiz" | "leaderboard" | "scores",
+      questionIndex: number,
+    ) => {
       if (socket && gameId) {
         socket.emit("UPDATE_GAME_STATE", {
           gameId,
@@ -255,6 +273,18 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     [socket, gameId],
   );
 
+  const notifyGameCompleted = useCallback(
+    (gameId: string, gameCode: string) => {
+      if (socket && gameId) {
+        socket.emit("GAME_COMPLETED", {
+          gameId,
+          gameCode,
+        });
+      }
+    },
+    [socket, gameId],
+  );
+
   return {
     ...gamePlayState,
     startCountdown,
@@ -263,5 +293,6 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     updateQuestionIndex,
     updateGameState,
     notifyPlayerAnswered,
+    notifyGameCompleted,
   };
 };

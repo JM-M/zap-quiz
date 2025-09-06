@@ -9,6 +9,7 @@ import { useGamePlay } from "../../hooks/use-game-play";
 import { Countdown } from "../components/countdown";
 import { Leaderboard } from "../components/leaderboard";
 import { Quiz } from "../components/quiz";
+import { ScoresScreen } from "../components/scores-screen";
 
 export const PlayView = () => {
   const { code } = useParams<{ code: string }>();
@@ -36,19 +37,22 @@ export const PlayView = () => {
     answeredCount,
     totalPlayers,
     notifyPlayerAnswered,
+    updateGameState,
+    notifyGameCompleted,
   } = useGamePlay({
     gameId: game.id,
   });
 
-  const { data: playersScores } = useSuspenseQuery(
-    trpc.game.getGamePlayersScores.queryOptions(
-      { gameId: game.id },
-      {
-        enabled: screen === "leaderboard",
-        placeholderData: keepPreviousData,
-      },
-    ),
-  );
+  const { data: playersScores, refetch: refetchPlayersScores } =
+    useSuspenseQuery(
+      trpc.game.getGamePlayersScores.queryOptions(
+        { gameId: game.id },
+        {
+          enabled: screen === "leaderboard",
+          placeholderData: keepPreviousData,
+        },
+      ),
+    );
 
   const { data: currentPlayer } = useSuspenseQuery(
     trpc.game.getCurrentPlayer.queryOptions({
@@ -77,9 +81,9 @@ export const PlayView = () => {
         <Countdown
           currentNumber={countdown.currentNumber}
           countTo={0}
-          onFinished={() => {
-            // Screen transition is handled server-side automatically
-          }}
+          // onFinished={() => {
+          //   // Screen transition is handled server-side automatically
+          // }}
         />
       )}
       {screen === "quiz" && (
@@ -96,8 +100,21 @@ export const PlayView = () => {
       {screen === "leaderboard" && (
         <Leaderboard
           game={game}
-          players={players}
           playersScores={playersScores}
+          players={players}
+          refetchPlayersScores={refetchPlayersScores}
+          questions={questions}
+          currentQuestionIndex={currentQuestionIndex}
+          updateGameState={updateGameState}
+          notifyGameCompleted={notifyGameCompleted}
+        />
+      )}
+      {screen === "scores" && (
+        <ScoresScreen
+          game={game}
+          playersScores={playersScores}
+          players={players}
+          refetchPlayersScores={refetchPlayersScores}
         />
       )}
     </div>

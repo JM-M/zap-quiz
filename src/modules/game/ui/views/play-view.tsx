@@ -66,21 +66,12 @@ export const PlayView = () => {
       !countdown.isActive &&
       !countdownStartedRef.current
     ) {
-      startCountdown(COUNTDOWN_TIME_SECS); // TODO: Extract to a constant
+      startCountdown(COUNTDOWN_TIME_SECS);
       countdownStartedRef.current = true;
     }
   }, [screen, isConnected, countdown.isActive, startCountdown]);
 
-  // Handle countdown completion
-  useEffect(() => {
-    if (
-      countdown.currentNumber === 0 &&
-      countdown.isActive === false &&
-      screen === "countdown"
-    ) {
-      updateScreen("quiz");
-    }
-  }, [countdown.currentNumber, countdown.isActive, screen, updateScreen]);
+  // Countdown completion is now handled server-side automatically
 
   const nextQuestion = () => {
     if (currentQuestionIndex === questions.length - 1) {
@@ -96,7 +87,7 @@ export const PlayView = () => {
           currentNumber={countdown.currentNumber}
           countTo={0}
           onFinished={() => {
-            updateScreen("quiz");
+            // Screen transition is handled server-side automatically
           }}
         />
       )}

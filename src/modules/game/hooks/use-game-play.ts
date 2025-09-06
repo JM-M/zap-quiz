@@ -22,7 +22,7 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
   const [gamePlayState, setGamePlayState] = useState<GamePlayState>({
     countdown: {
       isActive: false,
-      currentNumber: COUNTDOWN_TIME_SECS, // TODO: Extract to a constant
+      currentNumber: COUNTDOWN_TIME_SECS,
       remainingTime: 0,
       duration: 0,
     },

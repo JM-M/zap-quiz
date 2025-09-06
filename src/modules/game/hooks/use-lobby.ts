@@ -10,7 +10,6 @@ interface Player {
   isHost: boolean;
   joinedAt: Date;
   leftAt?: Date;
-  isActive: boolean;
 }
 
 interface LobbyState {
@@ -52,6 +51,48 @@ export const useLobby = ({
       });
     }
   }, [isConnected, socket, gameCode, playerName, userId]);
+
+  // Handle reconnection
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleReconnect = () => {
+      // When reconnecting, try to rejoin the lobby if we were in one
+      if (lobbyState.gameId && lobbyState.player) {
+        socket.emit("JOIN_LOBBY", {
+          gameCode,
+          playerName,
+          userId,
+        });
+      }
+    };
+
+    socket.on("connect", handleReconnect);
+
+    return () => {
+      socket.off("connect", handleReconnect);
+    };
+  }, [
+    socket,
+    lobbyState.gameId,
+    lobbyState.player,
+    gameCode,
+    playerName,
+    userId,
+  ]);
+
+  // Cleanup on unmount or when leaving lobby
+  useEffect(() => {
+    return () => {
+      // Leave lobby when component unmounts
+      if (socket && lobbyState.gameId && lobbyState.player) {
+        socket.emit("LEAVE_LOBBY", {
+          gameId: lobbyState.gameId,
+          playerId: lobbyState.player.id,
+        });
+      }
+    };
+  }, [socket, lobbyState.gameId, lobbyState.player]);
 
   // Set up event listeners
   useEffect(() => {

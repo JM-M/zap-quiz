@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { db } from "../../../db";
-import { games, players, questionOptions, questions } from "../../../db/schema";
+import { games, questionOptions, questions } from "../../../db/schema";
 import { authClient } from "../../../lib/auth/auth-client";
 
 // Load environment variables
@@ -165,14 +165,14 @@ async function seedDatabase() {
 
     const createdPlayers = [];
     for (const playerData of samplePlayers) {
-      const [player] = await db
-        .insert(players)
-        .values({
-          ...playerData,
-          gameId: game.id,
-        })
-        .returning();
-      createdPlayers.push(player);
+      // const [player] = await db
+      //   .insert(players)
+      //   .values({
+      //     ...playerData,
+      //     gameId: game.id,
+      //   })
+      //   .returning();
+      // createdPlayers.push(player);
     }
 
     console.log("✅ Created players:", createdPlayers.length);

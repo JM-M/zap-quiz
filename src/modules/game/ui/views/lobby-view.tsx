@@ -23,15 +23,7 @@ export const LobbyView = () => {
     trpc.game.getGameByCode.queryOptions({ code }),
   );
 
-  const {
-    players,
-    player,
-    isLoading,
-    error,
-    isConnected,
-    leaveLobby,
-    startGame,
-  } = useLobby({
+  const { players, isLoading, error, leaveLobby, startGame } = useLobby({
     gameCode: code,
     playerName: user?.name || "Anonymous Player",
     userId,
@@ -80,7 +72,10 @@ export const LobbyView = () => {
           <Card key={p.id} className="rounded-lg p-3">
             <CardContent className="p-0">
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span>{p.name}</span>
+                <span className="max-w-[114px] truncate">{p.name}</span>
+                {p.isHost && (
+                  <span className="text-muted-foreground text-xs">(Host)</span>
+                )}
               </div>
             </CardContent>
           </Card>

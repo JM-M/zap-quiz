@@ -316,7 +316,6 @@ export const gameRouter = createTRPCRouter({
             name: user.name,
             userId: userId,
             isHost: false,
-            isActive: true,
           })
           .returning();
         player = newPlayer;
@@ -447,7 +446,6 @@ export const gameRouter = createTRPCRouter({
           name: ctx.auth.user.name || "Host",
           userId: userId,
           isHost: true,
-          isActive: true,
         })
         .returning();
 

@@ -16,8 +16,8 @@ export const Hero = () => {
   const router = useRouter();
 
   return (
-    <header className="app-container flex flex-col items-center justify-center space-y-10 py-20">
-      <div className="space-y-5 text-center">
+    <header className="flex flex-col items-center justify-center space-y-10 py-36">
+      <div className="mx-auto max-w-2xl space-y-5 text-center">
         <h1 className="text-4xl font-bold">Spark the Fun with Zap Quiz</h1>
         <p className="text-lg">
           Turn learning, meetings, and events into high-energy quiz games that

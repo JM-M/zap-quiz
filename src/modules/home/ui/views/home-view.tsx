@@ -4,7 +4,7 @@ import { Hero } from "../components/hero";
 
 export const HomeView = () => {
   return (
-    <div>
+    <div className="app-container min-h-screen">
       <Hero />
     </div>
   );

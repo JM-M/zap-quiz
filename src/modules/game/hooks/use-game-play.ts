@@ -13,6 +13,8 @@ interface GamePlayState {
   countdown: CountdownState;
   isConnected: boolean;
   error: string | null;
+  screen: "countdown" | "quiz" | "leaderboard";
+  currentQuestionIndex: number;
 }
 
 export const useGamePlay = ({ gameId }: { gameId: string }) => {
@@ -26,6 +28,8 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     },
     isConnected,
     error: null,
+    screen: "countdown",
+    currentQuestionIndex: 0,
   });
 
   // Set up WebSocket event listeners
@@ -90,11 +94,52 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
       }));
     };
 
+    const handleScreenUpdated = (data: {
+      gameId: string;
+      screen: "countdown" | "quiz" | "leaderboard";
+    }) => {
+      if (data.gameId !== gameId) return;
+
+      setGamePlayState((prev) => ({
+        ...prev,
+        screen: data.screen,
+      }));
+    };
+
+    const handleQuestionIndexUpdated = (data: {
+      gameId: string;
+      questionIndex: number;
+    }) => {
+      if (data.gameId !== gameId) return;
+
+      setGamePlayState((prev) => ({
+        ...prev,
+        currentQuestionIndex: data.questionIndex,
+      }));
+    };
+
+    const handleGameStateUpdated = (data: {
+      gameId: string;
+      screen: "countdown" | "quiz" | "leaderboard";
+      questionIndex: number;
+    }) => {
+      if (data.gameId !== gameId) return;
+
+      setGamePlayState((prev) => ({
+        ...prev,
+        screen: data.screen,
+        currentQuestionIndex: data.questionIndex,
+      }));
+    };
+
     // Register event listeners
     socket.on("COUNTDOWN_START", handleCountdownStart);
     socket.on("COUNTDOWN_TICK", handleCountdownTick);
     socket.on("COUNTDOWN_END", handleCountdownEnd);
     socket.on("ERROR", handleError);
+    socket.on("SCREEN_UPDATED", handleScreenUpdated);
+    socket.on("QUESTION_INDEX_UPDATED", handleQuestionIndexUpdated);
+    socket.on("GAME_STATE_UPDATED", handleGameStateUpdated);
 
     // Cleanup
     return () => {
@@ -102,6 +147,9 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
       socket.off("COUNTDOWN_TICK", handleCountdownTick);
       socket.off("COUNTDOWN_END", handleCountdownEnd);
       socket.off("ERROR", handleError);
+      socket.off("SCREEN_UPDATED", handleScreenUpdated);
+      socket.off("QUESTION_INDEX_UPDATED", handleQuestionIndexUpdated);
+      socket.off("GAME_STATE_UPDATED", handleGameStateUpdated);
     };
   }, [socket, gameId]);
 
@@ -134,9 +182,49 @@ export const useGamePlay = ({ gameId }: { gameId: string }) => {
     }
   }, [socket, gameId]);
 
+  const updateScreen = useCallback(
+    (screen: "countdown" | "quiz" | "leaderboard") => {
+      if (socket && gameId) {
+        socket.emit("UPDATE_SCREEN", {
+          gameId,
+          screen,
+        });
+      }
+    },
+    [socket, gameId],
+  );
+
+  const updateQuestionIndex = useCallback(
+    (questionIndex: number) => {
+      if (socket && gameId) {
+        socket.emit("UPDATE_QUESTION_INDEX", {
+          gameId,
+          questionIndex,
+        });
+      }
+    },
+    [socket, gameId],
+  );
+
+  const updateGameState = useCallback(
+    (screen: "countdown" | "quiz" | "leaderboard", questionIndex: number) => {
+      if (socket && gameId) {
+        socket.emit("UPDATE_GAME_STATE", {
+          gameId,
+          screen,
+          questionIndex,
+        });
+      }
+    },
+    [socket, gameId],
+  );
+
   return {
     ...gamePlayState,
     startCountdown,
     stopCountdown,
+    updateScreen,
+    updateQuestionIndex,
+    updateGameState,
   };
 };

@@ -4,18 +4,13 @@ import { COUNTDOWN_TIME_SECS } from "@/constants";
 import { useTRPC } from "@/trpc/client";
 import { keepPreviousData, useSuspenseQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useGamePlay } from "../../hooks/use-game-play";
 import { Countdown } from "../components/countdown";
 import { Leaderboard } from "../components/leaderboard";
 import { Quiz } from "../components/quiz";
 
 export const PlayView = () => {
-  const [screen, setScreen] = useState<"countdown" | "quiz" | "leaderboard">(
-    "countdown",
-  );
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-
   const { code } = useParams<{ code: string }>();
 
   const trpc = useTRPC();
@@ -30,6 +25,20 @@ export const PlayView = () => {
   const { data: players } = useSuspenseQuery(
     trpc.game.getGamePlayers.queryOptions({ gameId: game.id }),
   );
+
+  // Use synchronized countdown and game state
+  const {
+    countdown,
+    startCountdown,
+    isConnected,
+    screen,
+    currentQuestionIndex,
+    updateScreen,
+    updateQuestionIndex,
+    updateGameState,
+  } = useGamePlay({
+    gameId: game.id,
+  });
 
   const { data: playersScores } = useSuspenseQuery(
     trpc.game.getGamePlayersScores.queryOptions(
@@ -47,10 +56,6 @@ export const PlayView = () => {
     }),
   );
 
-  // Use synchronized countdown
-  const { countdown, startCountdown, isConnected } = useGamePlay({
-    gameId: game.id,
-  });
   const countdownStartedRef = useRef(false);
 
   // Start countdown when component mounts and we're on countdown screen
@@ -73,15 +78,15 @@ export const PlayView = () => {
       countdown.isActive === false &&
       screen === "countdown"
     ) {
-      setScreen("quiz");
+      updateScreen("quiz");
     }
-  }, [countdown.currentNumber, countdown.isActive, screen]);
+  }, [countdown.currentNumber, countdown.isActive, screen, updateScreen]);
 
   const nextQuestion = () => {
     if (currentQuestionIndex === questions.length - 1) {
       return;
     }
-    setCurrentQuestionIndex(currentQuestionIndex + 1);
+    updateQuestionIndex(currentQuestionIndex + 1);
   };
 
   return (
@@ -91,7 +96,7 @@ export const PlayView = () => {
           currentNumber={countdown.currentNumber}
           countTo={0}
           onFinished={() => {
-            setScreen("quiz");
+            updateScreen("quiz");
           }}
         />
       )}
@@ -99,7 +104,7 @@ export const PlayView = () => {
         <Quiz
           game={game}
           questions={questions}
-          setScreen={setScreen}
+          setScreen={updateScreen}
           currentQuestionIndex={currentQuestionIndex}
           currentPlayer={currentPlayer}
         />

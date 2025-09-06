@@ -81,18 +81,19 @@ export const useLobby = ({
     userId,
   ]);
 
-  // Cleanup on unmount or when leaving lobby
-  useEffect(() => {
-    return () => {
-      // Leave lobby when component unmounts
-      if (socket && lobbyState.gameId && lobbyState.player) {
-        socket.emit("LEAVE_LOBBY", {
-          gameId: lobbyState.gameId,
-          playerId: lobbyState.player.id,
-        });
-      }
-    };
-  }, [socket, lobbyState.gameId, lobbyState.player]);
+  // Because there is no difference between the lobby and the game itself, we don't need to leave the lobby on unmount
+  // // Cleanup on unmount or when leaving lobby
+  // useEffect(() => {
+  //   return () => {
+  //     // Leave lobby when component unmounts
+  //     if (socket && lobbyState.gameId && lobbyState.player) {
+  //       socket.emit("LEAVE_LOBBY", {
+  //         gameId: lobbyState.gameId,
+  //         playerId: lobbyState.player.id,
+  //       });
+  //     }
+  //   };
+  // }, [socket, lobbyState.gameId, lobbyState.player]);
 
   // Set up event listeners
   useEffect(() => {

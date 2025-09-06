@@ -4,6 +4,7 @@ import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth/auth-client";
+import { cn } from "@/lib/utils";
 import { useLobby } from "@/modules/game/hooks/use-lobby";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -71,10 +72,16 @@ export const LobbyView = () => {
         {players.map((p) => (
           <Card key={p.id} className="rounded-lg p-3">
             <CardContent className="p-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="max-w-[114px] truncate">{p.name}</span>
+              <div className="flex items-center gap-2 text-sm">
+                <span
+                  className={cn({ "max-w-[100px] flex-1 truncate": p.isHost })}
+                >
+                  {p.name}
+                </span>
                 {p.isHost && (
-                  <span className="text-muted-foreground text-xs">(Host)</span>
+                  <span className="text-muted-foreground ml-auto inline-block text-xs">
+                    (Host)
+                  </span>
                 )}
               </div>
             </CardContent>
